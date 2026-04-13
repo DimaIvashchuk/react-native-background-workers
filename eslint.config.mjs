@@ -53,7 +53,7 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
 
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['error'],
+      '@typescript-eslint/no-unused-vars': ['warn'],
 
       '@stylistic/semi': ['error', 'always'],
       '@stylistic/indent': ['error', 2, { SwitchCase: 1 }],

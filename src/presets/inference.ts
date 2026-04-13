@@ -15,8 +15,12 @@ export function createInferenceWorker(
   });
 
   return {
-    get isReady() { return worker.isReady; },
-    get setupError() { return worker.setupError; },
+    get isReady() {
+      return worker.isReady; 
+    },
+    get setupError() {
+      return worker.setupError; 
+    },
     postMessage: (msg: unknown) => worker.postMessage(msg),
     send: <T = unknown>(msg: unknown) => worker.send<T>(msg),
     addEventListener: (...args) => worker.addEventListener(...args),

@@ -190,7 +190,9 @@ export class WorkerPool {
 
   private totalPendingForEntry(entry: PoolEntry): number {
     let total = 0;
-    entry.workers.forEach((rec) => { total += rec.pendingTasks; });
+    entry.workers.forEach((rec) => {
+      total += rec.pendingTasks; 
+    });
     return total;
   }
 }
