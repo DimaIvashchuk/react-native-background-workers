@@ -48,57 +48,67 @@ function isFunctionNode(node) {
 }
 
 module.exports = function backgroundWorkersPlugin({ types: t }) {
+  function processCallExpression(path) {
+    const callee = path.node.callee;
+
+    let calleeName = null;
+    if (callee.type === 'Identifier') {
+      calleeName = callee.name;
+    } else if (
+      callee.type === 'MemberExpression' &&
+      callee.property.type === 'Identifier'
+    ) {
+      calleeName = callee.property.name;
+    }
+
+    if (!calleeName || !HOOK_NAMES.has(calleeName)) return;
+
+    const args = path.node.arguments;
+    if (!args || args.length === 0) return;
+
+    if (calleeName === 'useWorker') {
+      const taskArg = args[0];
+      if (taskArg && isFunctionNode(taskArg)) {
+        addWorkletDirective(t, taskArg);
+      }
+    }
+
+    if (calleeName === 'useBackgroundWorker') {
+      const optionsArg = args[0];
+      if (!optionsArg || optionsArg.type !== 'ObjectExpression') return;
+
+      for (const prop of optionsArg.properties) {
+        if (prop.type !== 'ObjectProperty' && prop.type !== 'Property')
+          continue;
+
+        const key = prop.key;
+        const keyName =
+          key.type === 'Identifier'
+            ? key.name
+            : key.type === 'StringLiteral'
+              ? key.value
+              : null;
+
+        if (!keyName || !WORKLETIZED_PROPERTIES.has(keyName)) continue;
+
+        if (isFunctionNode(prop.value)) {
+          addWorkletDirective(t, prop.value);
+        }
+      }
+    }
+  }
+
   return {
     name: 'react-native-background-workers',
     visitor: {
-      CallExpression(path) {
-        const callee = path.node.callee;
-
-        let calleeName = null;
-        if (callee.type === 'Identifier') {
-          calleeName = callee.name;
-        } else if (
-          callee.type === 'MemberExpression' &&
-          callee.property.type === 'Identifier'
-        ) {
-          calleeName = callee.property.name;
-        }
-
-        if (!calleeName || !HOOK_NAMES.has(calleeName)) return;
-
-        const args = path.node.arguments;
-        if (!args || args.length === 0) return;
-
-        if (calleeName === 'useWorker') {
-          const taskArg = args[0];
-          if (taskArg && isFunctionNode(taskArg)) {
-            addWorkletDirective(t, taskArg);
-          }
-        }
-
-        if (calleeName === 'useBackgroundWorker') {
-          const optionsArg = args[0];
-          if (!optionsArg || optionsArg.type !== 'ObjectExpression') return;
-
-          for (const prop of optionsArg.properties) {
-            if (prop.type !== 'ObjectProperty' && prop.type !== 'Property')
-              continue;
-
-            const key = prop.key;
-            const keyName =
-              key.type === 'Identifier'
-                ? key.name
-                : key.type === 'StringLiteral'
-                  ? key.value
-                  : null;
-
-            if (!keyName || !WORKLETIZED_PROPERTIES.has(keyName)) continue;
-
-            if (isFunctionNode(prop.value)) {
-              addWorkletDirective(t, prop.value);
-            }
-          }
-        }
+      Program: {
+        enter(programPath) {
+          programPath.traverse({
+            CallExpression(path) {
+              processCallExpression(path);
+            },
+          });
+        },
       },
     },
   };
