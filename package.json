@@ -1,0 +1,76 @@
+{
+  "name": "react-native-background-workers",
+  "version": "0.1.0",
+  "description": "High-level Web Workers API for React Native New Architecture",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./plugin": "./plugin/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "plugin"
+  ],
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "build:watch": "rm -rf lib && tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src example",
+    "lint:fix": "eslint --cache --fix src example",
+    "prepublishOnly": "yarn lint && yarn build",
+    "start": "cd example && npx react-native start",
+    "ios": "cd example && npx react-native run-ios",
+    "android": "cd example && npx react-native run-android"
+  },
+  "keywords": [
+    "react-native",
+    "background-workers",
+    "worklets",
+    "multithreading",
+    "web-workers",
+    "new-architecture",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DimaIvashchuk/react-native-background-workers.git"
+  },
+  "author": "Dmytro Ivashchuk <dmytro.ivashchuk.s@gmail.com> (https://github.com/DimaIvashchuk)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DimaIvashchuk/react-native-background-workers/issues"
+  },
+  "homepage": "https://github.com/DimaIvashchuk/react-native-background-workers#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@react-native/babel-preset": "0.85.0",
+    "@stylistic/eslint-plugin": "^3.1.0",
+    "@types/react": "^19.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "react": "19.2.3",
+    "react-native": "0.85.0",
+    "react-native-worklets": "^0.8.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-worklets": ">=0.8.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "yarn@1.22.22"
+}
