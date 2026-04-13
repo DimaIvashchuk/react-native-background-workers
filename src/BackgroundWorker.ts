@@ -101,15 +101,25 @@ implements BackgroundWorker<TInput, TOutput> {
     runtime: WorkletRuntime,
     setup: () => Promise<void> | void
   ): Promise<void> {
-    try {
-      await runOnRuntimeAsync(runtime, setup);
-      this.setupPromise = null;
+    const safeSetup = () => {
+      'worklet';
+      try {
+        setup();
+        return null;
+      } catch (e: any) {
+        return (e && e.message) ? String(e.message) : String(e);
+      }
+    };
+
+    const errorMsg = await runOnRuntimeAsync(runtime, safeSetup);
+    this.setupPromise = null;
+
+    if (errorMsg === null) {
       this._ready = true;
       this._onReadyCallback?.(true, null);
-    } catch (e) {
-      this.setupPromise = null;
+    } else {
       this._ready = false;
-      this._setupError = toError(e);
+      this._setupError = new Error(String(errorMsg));
       this._onReadyCallback?.(false, this._setupError);
       this.onErrorHandler?.(this._setupError);
     }
@@ -134,15 +144,47 @@ implements BackgroundWorker<TInput, TOutput> {
     const pool = !this._dedicated ? WorkerPool.shared() : null;
     pool?.incrementPending(this._name);
 
+    const safeHandler = (msg: TInput) => {
+      'worklet';
+      try {
+        const result = handler(msg);
+        return { ok: true as const, value: result };
+      } catch (e: any) {
+        const errMsg = (e && e.message) ? String(e.message) : String(e);
+        return { ok: false as const, error: errMsg };
+      }
+    };
+
     try {
-      const result = await runOnRuntimeAsync(this.runtime, handler, message) as TOutput;
+      const result = await runOnRuntimeAsync(this.runtime, safeHandler, message);
+      if (result && typeof result === 'object' && 'ok' in result) {
+        if (result.ok) {
+          const event = {
+            type: 'message' as const,
+            data: result.value as TOutput,
+            messageId,
+          };
+          this.emitter.emit('message', event);
+          return result.value as unknown as T;
+        } else {
+          const error = new Error(String(result.error));
+          const event = {
+            type: 'error' as const,
+            error,
+            messageId,
+          };
+          this.emitter.emit('error', event);
+          this.onErrorHandler?.(error);
+          throw error;
+        }
+      }
       const event = {
         type: 'message' as const,
-        data: result,
+        data: result as TOutput,
         messageId,
       };
       this.emitter.emit('message', event);
-      return result as unknown as T;
+      return result as T;
     } catch (err) {
       const error = toError(err);
       const event = {

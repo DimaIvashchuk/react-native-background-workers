@@ -1,4 +1,4 @@
-import { type DependencyList, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createWorkletRuntime,
   runOnRuntimeAsync,
@@ -30,7 +30,7 @@ function toError(err: unknown): Error {
 
 export function useWorker<TInput, TOutput>(
   task: (input: TInput) => TOutput,
-  deps?: DependencyList,
+  deps?: React.DependencyList,
   config?: UseWorkerConfig
 ): UseWorkerResult<TInput, TOutput> {
   const [isLoading, setIsLoading] = useState(false);
