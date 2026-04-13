@@ -1,4 +1,4 @@
-# react-native-background-workers
+# react-native-background-workers [WIP]
 
 High-level, type-safe Web Workers API for React Native New Architecture.
 
